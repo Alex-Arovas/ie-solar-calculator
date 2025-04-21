@@ -11,16 +11,25 @@ export default function SolarCalculator() {
 
   const fetchSunHours = async () => {
     setLoading(true);
+    const url = `https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=SI_TILTED_AVG_OPTIMAL&community=re&longitude=${lon}&latitude=${lat}&format=JSON`;
     try {
-      const url = `https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=SI_EF_TILTED_SURFACE&community=RE&longitude=${lon}&latitude=${lat}&format=JSON`;
       const res = await fetch(url);
       const data = await res.json();
-      const monthly = data.properties.parameter.SI_EF_TILTED_SURFACE;
+
+      console.log(data)
+  
+      const monthly = data?.properties?.parameter?.SI_TILTED_AVG_OPTIMAL;
+  
+      if (!monthly || typeof monthly !== 'object') {
+        alert('Solar data not available for this location. Please check your latitude and longitude: ' + monthly);
+        return null;
+      }
+  
       const values = Object.values(monthly);
       const avg = values.reduce((a, b) => a + b, 0) / values.length;
       return avg;
     } catch (err) {
-      alert('Failed to fetch solar data');
+      alert('Failed to fetch solar data. Please try again: ' + url + ' ' + err.message);
       return null;
     } finally {
       setLoading(false);
